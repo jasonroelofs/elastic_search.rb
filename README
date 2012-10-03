@@ -1,0 +1,78 @@
+Very much a WIP. Quick run down on how to use currently.
+
+1. Configuration
+
+  ElasticSearch.configure do |config|
+    config.host =
+    config.port =
+    config.debug = (true | false)
+
+    # Supports background indexing
+    config.job_queue = ElasticSearch::DeferTo::Resque.new(:search)
+  end
+
+
+2. Define type mapping
+
+These blocks tell the library how to convert from an ES document to your model.
+I plan on making this logic built into the library
+
+  ElasticSearch.define_type_convert "type-name" do |id|
+    Model.find(id) # e.g. with ActiveRecord
+  end
+
+3. Define model indexing
+
+See lib/elastic_search/model for details on what goes in elastic_search block (Field class)
+
+  class YourModel
+    include ElasticSearch::Model
+
+    elastic_search "index_name" do
+      field :attribute
+
+      field :processed_attribute do |model|
+        model.something
+      end
+
+      field :typed_attribute, :boolean
+
+    end
+  end
+
+4. Index your models
+
+  # Directly
+  ElasticSearch.index(your_model)
+
+  # Defer it to the background queue
+  ElasticSearch.defer(:index, your_model)
+
+5. Search
+
+Still very bare bones right now. Supports pagination, query, filters, and sorting
+See elastic_search/query for more information.
+See elastic_search/results. Results, if mapping above is set up correctly, will automatically
+convert to the appropriate type.
+
+  es_query = ElasticSearch::Query.new
+  es_query.query = "some search term"
+  es_query.filter_on :attribute => "value"
+  es_query.ass_sort_by :processed_attribute, "desc"
+
+  results = ElasticSearch.search "/index/type", es_query
+
+6. Update model index
+
+  # Delete from ES
+  ElasticSearch.delete(your_model)
+
+  # Update a record that's already in ES, just index it again
+  ElasticSearch.index(your_model)
+
+7. Send a raw request to ElasticSearch (for things that aren't implemented yet)
+
+This will return the raw JSON from ElasticSearch parsed into a Hash. Does not run through
+any type conversions.
+
+  ElasticSearch.execute(:get, "/some/path", Hash)
