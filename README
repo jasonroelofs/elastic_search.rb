@@ -75,11 +75,11 @@ convert to the appropriate type.
 This will return the raw JSON from ElasticSearch parsed into a Hash. Does not run through
 any type conversions.
 
-  ElasticSearch.execute(:get, "/some/path", Hash)
+  ElasticSearch.execute(:get, "/some/path", request_body)
 
 For example, to configure an index you can do the following:
 
-  ElasticSearch.execute(:post, "/my-index", {
+  body = {
     :mappings => {
       :properties => {
         :column_name => {
@@ -87,4 +87,6 @@ For example, to configure an index you can do the following:
         }
       }
     }
-  })
+  }
+
+  ElasticSearch.execute(:post, "/my-index", MultiJson.encode(body))
