@@ -76,3 +76,15 @@ This will return the raw JSON from ElasticSearch parsed into a Hash. Does not ru
 any type conversions.
 
   ElasticSearch.execute(:get, "/some/path", Hash)
+
+For example, to configure an index you can do the following:
+
+  ElasticSearch.execute(:post, "/my-index", {
+    :mappings => {
+      :properties => {
+        :column_name => {
+          :type => "string", :index => "analyzed", :analyzer => "keyword"
+        }
+      }
+    }
+  })
